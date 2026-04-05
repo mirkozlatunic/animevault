@@ -2,7 +2,7 @@
 
 **The definitive ranking of the 30 greatest anime series of all time — with iconic motivational quotes you can copy and share.**
 
-> Live site → **[animevault.vercel.app](https://animevault.vercel.app)**
+> Live site → **[animevault-chi.vercel.app](https://animevault-chi.vercel.app)**
 
 ---
 
