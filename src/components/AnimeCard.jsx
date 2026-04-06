@@ -119,7 +119,7 @@ export default function AnimeCard({ anime, index, onClick }) {
           className="absolute inset-0 z-10"
           style={{
             background: imageUrl
-              ? `linear-gradient(to right, ${rgba(anime.color,0.15)}, rgba(8,13,22,0.5)), linear-gradient(to top, rgba(4,6,9,0.7) 0%, transparent 50%)`
+              ? `linear-gradient(to bottom, rgba(4,6,9,0.55) 0%, transparent 40%), linear-gradient(to right, rgba(4,6,9,0.35), rgba(8,13,22,0.15))`
               : `linear-gradient(160deg, ${rgba(anime.color,0.2)}, ${rgba(anime.color,0.05)})`,
           }}
           aria-hidden="true"
@@ -146,11 +146,17 @@ export default function AnimeCard({ anime, index, onClick }) {
           />
         )}
 
-        {/* Rank badge */}
+        {/* Rank badge — always visible over any image */}
         <div
-          className="absolute top-2 left-2 z-20 font-heading text-[0.6rem] font-bold px-2 py-0.5 rounded-md"
-          style={{ background: rgba(anime.color,0.25), color: anime.color, border: `1px solid ${rgba(anime.color,0.5)}`, backdropFilter: 'blur(4px)' }}
-          aria-hidden="true"
+          className="absolute top-2 left-2 z-20 font-display text-xs px-2 py-0.5 rounded-md leading-tight"
+          style={{
+            background: 'rgba(4,6,9,0.82)',
+            color: anime.color,
+            border: `1px solid ${rgba(anime.color, 0.7)}`,
+            backdropFilter: 'blur(6px)',
+            boxShadow: `0 0 10px rgba(0,0,0,0.6), 0 0 8px ${rgba(anime.color,0.4)}`,
+            textShadow: `0 0 8px ${rgba(anime.color,0.8)}`,
+          }}
         >
           #{anime.rank}
         </div>
