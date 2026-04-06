@@ -1,112 +1,132 @@
 import { useState, useMemo, useCallback } from 'react';
 import { animeData } from '../data/anime';
 
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
+function rgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return (a) => `rgba(${r},${g},${b},${a})`;
 }
 
-// Flatten all quotes with their parent anime info
 const ALL_QUOTES = animeData.flatMap(anime =>
-  anime.quotes.map((quote, qi) => ({
-    ...quote,
+  anime.quotes.map((q, i) => ({
+    ...q,
     animeTitle: anime.title,
     animeColor: anime.color,
-    animeRank: anime.rank,
-    id: `${anime.rank}-${qi}`,
+    animeRank:  anime.rank,
+    id: `${anime.rank}-${i}`,
   }))
 );
 
 export default function QuoteWall() {
   const [filter, setFilter] = useState('All');
-  const [toast, setToast] = useState(null);
+  const [toast, setToast]   = useState(null);
 
-  const filtered = useMemo(() => {
-    if (filter === 'All') return ALL_QUOTES;
-    return ALL_QUOTES.filter(q => q.animeTitle === filter);
-  }, [filter]);
+  const filtered = useMemo(() =>
+    filter === 'All' ? ALL_QUOTES : ALL_QUOTES.filter(q => q.animeTitle === filter),
+    [filter]
+  );
 
   const showToast = useCallback(msg => {
     setToast(msg);
     setTimeout(() => setToast(null), 2000);
   }, []);
 
-  const handleCopy = useCallback(async (quote) => {
-    const text = `"${quote.text}" — ${quote.character}, ${quote.animeTitle}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast('Quote copied!');
-    } catch {
-      showToast('Copy failed');
-    }
+  const handleCopy = useCallback(async (q) => {
+    const text = `"${q.text}" — ${q.character}, ${q.animeTitle}`;
+    try { await navigator.clipboard.writeText(text); showToast('Copied!'); }
+    catch { showToast('Copy failed'); }
   }, [showToast]);
 
-  const handleShare = useCallback(async (quote) => {
-    const text = `"${quote.text}" — ${quote.character}, ${quote.animeTitle}`;
+  const handleShare = useCallback(async (q) => {
+    const text = `"${q.text}" — ${q.character}, ${q.animeTitle}`;
     if (navigator.share) {
-      try { await navigator.share({ text, title: `Quote from ${quote.animeTitle}` }); } catch { /* cancelled */ }
+      try { await navigator.share({ text, title: `Quote from ${q.animeTitle}` }); } catch { /* cancelled */ }
     } else {
-      window.open(
-        `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + ' #AnimeVault')}`,
-        '_blank', 'noopener,noreferrer'
-      );
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text + ' #AnimeVault')}`, '_blank', 'noopener,noreferrer');
     }
   }, []);
 
   return (
     <div>
-      {/* Hero */}
-      <div className="text-center mb-10">
-        <p className="text-[#00E5FF] text-sm font-heading tracking-[0.3em] uppercase mb-3">Dream Quote Wall</p>
-        <h1 className="font-display text-6xl md:text-8xl text-[#F0F4FF] leading-none mb-4 glow-cyan">
+      {/* ── Hero ── */}
+      <div className="text-center mb-12 animate-fade-up">
+        <p
+          className="font-heading text-xs font-bold tracking-[0.35em] uppercase mb-3"
+          style={{ color: 'rgba(0,240,255,0.7)' }}
+        >
+          Dream Quote Wall
+        </p>
+        <h1
+          className="font-display font-bold leading-none mb-4 glow-cyan"
+          style={{ fontSize: 'clamp(3.5rem,12vw,7rem)', color: '#EEF2FF' }}
+        >
           ALL QUOTES
         </h1>
-        <p className="text-[#8A94AA] text-lg max-w-xl mx-auto">
-          {ALL_QUOTES.length} iconic lines from {animeData.length} legendary series — copy, share, and let them inspire.
+
+        {/* Stats row */}
+        <div className="flex items-center justify-center gap-8 mb-5">
+          {[
+            { n: ALL_QUOTES.length, label: 'Total Quotes' },
+            { n: animeData.length,  label: 'Anime Series' },
+          ].map(s => (
+            <div key={s.label} className="text-center">
+              <p className="font-display text-3xl font-bold" style={{ color: '#00F0FF' }}>{s.n}</p>
+              <p className="font-heading text-xs uppercase tracking-widest" style={{ color: '#5A6A8A' }}>{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-[#5A6A8A] max-w-lg mx-auto text-sm leading-relaxed">
+          Every iconic line from every legendary series. Hover to copy or share.
         </p>
       </div>
 
-      {/* Anime filter */}
-      <div className="flex flex-wrap gap-2 mb-8 justify-center">
-        <FilterChip label="All" active={filter === 'All'} color="#FF6B2B" onClick={() => setFilter('All')} />
-        {animeData.map(anime => (
+      {/* ── Filter chips ── */}
+      <div
+        className="flex flex-wrap gap-2 mb-8 justify-center"
+        role="group"
+        aria-label="Filter quotes by anime"
+      >
+        <FilterChip label="All" active={filter === 'All'} color="#00F0FF" onClick={() => setFilter('All')} />
+        {animeData.map(a => (
           <FilterChip
-            key={anime.rank}
-            label={anime.title.length > 20 ? anime.title.substring(0, 20) + '…' : anime.title}
-            active={filter === anime.title}
-            color={anime.color}
-            onClick={() => setFilter(anime.title)}
+            key={a.rank}
+            label={a.title.length > 22 ? a.title.slice(0,22) + '…' : a.title}
+            active={filter === a.title}
+            color={a.color}
+            onClick={() => setFilter(a.title)}
           />
         ))}
       </div>
 
-      {/* Masonry grid */}
-      <div className="masonry-grid">
-        {filtered.map((quote, i) => (
-          <WallQuoteCard
-            key={quote.id}
-            quote={quote}
-            index={i}
-            onCopy={handleCopy}
-            onShare={handleShare}
-          />
-        ))}
-      </div>
-
-      {/* Empty state */}
-      {filtered.length === 0 && (
-        <div className="text-center py-20 text-[#8A94AA]">
-          <p className="font-display text-5xl mb-3">NO QUOTES</p>
-          <p>Select a different anime filter.</p>
+      {/* ── Masonry ── */}
+      {filtered.length > 0 ? (
+        <div className="masonry-grid">
+          {filtered.map((q, i) => (
+            <WallCard key={q.id} quote={q} index={i} onCopy={handleCopy} onShare={handleShare} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-24" aria-live="polite">
+          <p className="font-display text-5xl mb-3" style={{ color: '#5A6A8A' }}>NO QUOTES</p>
+          <p className="text-[#5A6A8A] text-sm">Select a different filter to browse quotes.</p>
         </div>
       )}
 
-      {/* Toast */}
+      {/* ── Toast ── */}
       {toast && (
-        <div className="toast fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] px-5 py-2.5 rounded-xl text-sm font-heading font-semibold"
-          style={{ background: '#FF6B2B', color: '#080B14', boxShadow: '0 8px 20px rgba(255,107,43,0.4)' }}
+        <div
+          role="alert"
+          aria-live="polite"
+          className="toast fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-5 py-2.5 rounded-xl text-sm font-heading font-semibold"
+          style={{
+            background: 'rgba(0,240,255,0.12)',
+            color: '#00F0FF',
+            border: '1px solid rgba(0,240,255,0.3)',
+            boxShadow: '0 8px 24px rgba(0,240,255,0.15)',
+            backdropFilter: 'blur(12px)',
+          }}
         >
           {toast}
         </div>
@@ -116,14 +136,16 @@ export default function QuoteWall() {
 }
 
 function FilterChip({ label, active, color, onClick }) {
+  const c = rgb(color);
   return (
     <button
       onClick={onClick}
-      className="px-3 py-1.5 rounded-lg text-xs font-heading font-semibold uppercase tracking-wide transition-all duration-150 hover:scale-105 border"
+      aria-pressed={active}
+      className="px-3 py-2 rounded-lg text-xs font-heading font-semibold uppercase tracking-wide transition-all duration-150 hover:scale-105 active:scale-95 border"
       style={
         active
-          ? { background: hexToRgba(color, 0.2), color, borderColor: hexToRgba(color, 0.5), boxShadow: `0 0 12px ${hexToRgba(color, 0.2)}` }
-          : { background: 'rgba(255,255,255,0.03)', color: '#8A94AA', borderColor: 'rgba(255,255,255,0.08)' }
+          ? { background: c(0.14), color, borderColor: c(0.4), boxShadow: `0 0 14px ${c(0.18)}` }
+          : { background: 'rgba(255,255,255,0.03)', color: '#5A6A8A', borderColor: 'rgba(255,255,255,0.07)' }
       }
     >
       {label}
@@ -131,47 +153,51 @@ function FilterChip({ label, active, color, onClick }) {
   );
 }
 
-function WallQuoteCard({ quote, index, onCopy, onShare }) {
+function WallCard({ quote, index, onCopy, onShare }) {
   const [hovered, setHovered] = useState(false);
+  const c = rgb(quote.animeColor);
 
   return (
     <div
-      className="masonry-item rounded-xl p-4 transition-all duration-200 cursor-default"
+      className="masonry-item rounded-xl p-4 transition-all duration-250"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: 'rgba(13,18,32,0.9)',
-        border: `1px solid ${hovered ? hexToRgba(quote.animeColor, 0.35) : 'rgba(255,255,255,0.07)'}`,
-        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: hovered ? `0 12px 30px rgba(0,0,0,0.4), 0 0 20px ${hexToRgba(quote.animeColor, 0.1)}` : 'none',
+        background: hovered ? 'rgba(11,17,32,0.9)' : 'rgba(8,13,22,0.8)',
+        border: `1px solid ${hovered ? c(0.3) : 'rgba(255,255,255,0.06)'}`,
+        transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+        boxShadow: hovered ? `0 16px 40px rgba(0,0,0,0.5), 0 0 24px ${c(0.1)}` : '0 2px 12px rgba(0,0,0,0.3)',
+        backdropFilter: 'blur(8px)',
       }}
     >
-      {/* Colored top bar */}
+      {/* Top accent bar */}
       <div
-        className="h-0.5 w-full rounded-full mb-3"
-        style={{ background: `linear-gradient(90deg, ${quote.animeColor}, transparent)` }}
+        className="h-px w-full rounded-full mb-3"
+        style={{ background: `linear-gradient(90deg, ${quote.animeColor}, transparent)`, opacity: hovered ? 1 : 0.4, transition: 'opacity 0.25s' }}
+        aria-hidden="true"
       />
 
-      {/* Anime title + rank */}
-      <div className="flex items-center justify-between mb-2.5">
+      {/* Anime + rank */}
+      <div className="flex items-center justify-between mb-2.5 gap-2">
         <p
-          className="font-heading text-xs font-bold uppercase tracking-wider"
+          className="font-heading text-[0.65rem] font-bold uppercase tracking-wider truncate"
           style={{ color: quote.animeColor }}
         >
-          {quote.animeTitle.length > 22 ? quote.animeTitle.substring(0, 22) + '…' : quote.animeTitle}
+          {quote.animeTitle}
         </p>
         <span
-          className="font-display text-xs px-1.5 py-0.5 rounded"
-          style={{ background: hexToRgba(quote.animeColor, 0.15), color: quote.animeColor }}
+          className="font-heading text-[0.6rem] font-bold px-1.5 py-0.5 rounded flex-shrink-0"
+          style={{ background: c(0.14), color: quote.animeColor, border: `1px solid ${c(0.3)}` }}
+          aria-label={`Ranked #${quote.animeRank}`}
         >
           #{quote.animeRank}
         </span>
       </div>
 
-      {/* Quote text */}
+      {/* Quote */}
       <blockquote
-        className="text-[#D8E0F0] text-sm leading-relaxed italic mb-3 font-body"
-        style={{ borderLeft: `2px solid ${hexToRgba(quote.animeColor, 0.4)}`, paddingLeft: '0.75rem' }}
+        className="text-[#C8D4F0] text-sm leading-relaxed italic mb-3 font-body pl-3"
+        style={{ borderLeft: `2px solid ${c(0.45)}` }}
       >
         {quote.text}
       </blockquote>
@@ -179,43 +205,47 @@ function WallQuoteCard({ quote, index, onCopy, onShare }) {
       {/* Character + actions */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <div className="w-1 h-1 rounded-full" style={{ background: quote.animeColor }} />
-          <p className="text-xs font-heading font-semibold" style={{ color: hexToRgba(quote.animeColor, 0.85) }}>
+          <div
+            className="w-1 h-1 rounded-full flex-shrink-0"
+            style={{ background: quote.animeColor, boxShadow: `0 0 4px ${quote.animeColor}` }}
+            aria-hidden="true"
+          />
+          <p className="font-heading font-semibold text-xs" style={{ color: c(0.85) }}>
             {quote.character}
           </p>
         </div>
 
+        {/* Actions — visible only on hover */}
         <div
-          className="flex items-center gap-1.5 transition-opacity duration-200"
-          style={{ opacity: hovered ? 1 : 0 }}
+          className="flex items-center gap-1.5 transition-all duration-200"
+          style={{ opacity: hovered ? 1 : 0, transform: hovered ? 'scale(1)' : 'scale(0.85)' }}
+          aria-hidden={!hovered}
         >
-          <SmallButton onClick={() => onCopy(quote)} color={quote.animeColor} title="Copy quote">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <IconBtn onClick={() => onCopy(quote)} color={quote.animeColor} title="Copy quote">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-          </SmallButton>
-          <SmallButton onClick={() => onShare(quote)} color={quote.animeColor} title="Share quote">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          </IconBtn>
+          <IconBtn onClick={() => onShare(quote)} color={quote.animeColor} title="Share quote">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
-          </SmallButton>
+          </IconBtn>
         </div>
       </div>
     </div>
   );
 }
 
-function SmallButton({ onClick, color, title, children }) {
+function IconBtn({ onClick, color, title, children }) {
+  const c = rgb(color);
   return (
     <button
       onClick={onClick}
       title={title}
-      className="w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-95"
-      style={{
-        background: hexToRgba(color, 0.12),
-        color,
-        border: `1px solid ${hexToRgba(color, 0.25)}`,
-      }}
+      aria-label={title}
+      className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-110 active:scale-95"
+      style={{ background: c(0.12), color, border: `1px solid ${c(0.25)}` }}
     >
       {children}
     </button>

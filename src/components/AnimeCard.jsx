@@ -1,201 +1,186 @@
 import { useRef, useEffect } from 'react';
 
 const GENRE_STYLES = {
-  Action:    'bg-red-500/10 text-red-400 border-red-500/25',
-  Adventure: 'bg-orange-500/10 text-orange-400 border-orange-500/25',
-  Drama:     'bg-purple-500/10 text-purple-400 border-purple-500/25',
-  Fantasy:   'bg-blue-500/10 text-blue-400 border-blue-500/25',
-  'Sci-Fi':  'bg-cyan-500/10 text-cyan-400 border-cyan-500/25',
-  Comedy:    'bg-yellow-400/10 text-yellow-400 border-yellow-400/25',
-  Thriller:  'bg-rose-500/10 text-rose-400 border-rose-500/25',
-  Romance:   'bg-pink-500/10 text-pink-400 border-pink-500/25',
+  Action:    'text-red-400 border-red-500/30 bg-red-500/[0.08]',
+  Adventure: 'text-orange-400 border-orange-500/30 bg-orange-500/[0.08]',
+  Drama:     'text-purple-400 border-purple-500/30 bg-purple-500/[0.08]',
+  Fantasy:   'text-blue-400 border-blue-500/30 bg-blue-500/[0.08]',
+  'Sci-Fi':  'text-cyan-400 border-cyan-500/30 bg-cyan-500/[0.07]',
+  Comedy:    'text-yellow-400 border-yellow-500/30 bg-yellow-500/[0.08]',
+  Thriller:  'text-rose-400 border-rose-500/30 bg-rose-500/[0.08]',
+  Romance:   'text-pink-400 border-pink-500/30 bg-pink-500/[0.08]',
 };
 
-function StarRating({ rating }) {
+function rgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return { r, g, b, rgba: (a) => `rgba(${r},${g},${b},${a})` };
+}
+
+function Stars({ rating }) {
   return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => {
-        const filled = i <= Math.floor(rating);
-        const half = !filled && i === Math.ceil(rating) && rating % 1 >= 0.5;
-        return (
-          <span
-            key={i}
-            className="text-sm leading-none"
-            style={{ color: filled || half ? '#FFD700' : 'rgba(255,215,0,0.2)' }}
-          >
-            ★
-          </span>
-        );
-      })}
+    <div className="flex items-center gap-0.5" aria-label={`Rating: ${rating} out of 5`}>
+      {[1,2,3,4,5].map(i => (
+        <svg key={i} className="w-3 h-3" viewBox="0 0 24 24" aria-hidden="true"
+          fill={i <= Math.floor(rating) ? '#FFD600' : i === Math.ceil(rating) && rating % 1 >= 0.5 ? '#FFD600' : 'rgba(255,214,0,0.18)'}
+        >
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+      ))}
     </div>
   );
 }
 
 export default function AnimeCard({ anime, index, onClick }) {
   const ref = useRef(null);
+  const c = rgb(anime.color);
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Stagger the reveal by index (capped at 300ms)
-          const delay = Math.min(index * 45, 300);
-          setTimeout(() => {
-            if (ref.current) ref.current.classList.add('card-visible');
-          }, delay);
-          observer.unobserve(entry.target);
+          const delay = Math.min(index * 40, 280);
+          setTimeout(() => el.classList.add('card-visible'), delay);
+          observer.unobserve(el);
         }
       },
-      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -16px 0px' }
     );
-    if (ref.current) observer.observe(ref.current);
+    observer.observe(el);
     return () => observer.disconnect();
   }, [index]);
-
-  // Hex to rgba helper for glow
-  const hexToRgba = (hex, alpha) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r},${g},${b},${alpha})`;
-  };
 
   return (
     <article
       ref={ref}
-      className="anime-card card-hidden group relative flex rounded-xl overflow-hidden cursor-pointer select-none"
+      className="anime-card card-hidden group relative flex rounded-2xl overflow-hidden"
+      style={{
+        background: 'rgba(11,17,32,0.8)',
+        border: `1px solid rgba(255,255,255,0.07)`,
+        backdropFilter: 'blur(8px)',
+        minHeight: '120px',
+      }}
       onClick={onClick}
+      onKeyDown={e => e.key === 'Enter' && onClick()}
       role="button"
       tabIndex={0}
-      onKeyDown={e => e.key === 'Enter' && onClick()}
-      aria-label={`View quotes for ${anime.title}`}
-      style={{ '--accent': anime.color }}
+      aria-label={`Open quotes for ${anime.title}, ranked #${anime.rank}`}
     >
-      {/* ── Ghost rank number behind card ── */}
+      {/* Hover glow border overlay */}
       <div
-        className="absolute right-0 top-1/2 -translate-y-1/2 font-display leading-none pointer-events-none select-none z-0"
-        style={{
-          fontSize: 'clamp(5rem, 12vw, 9rem)',
-          color: anime.color,
-          opacity: 0.04,
-          right: '-0.1em',
-        }}
+        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{ boxShadow: `inset 0 0 0 1px ${c.rgba(0.35)}, 0 8px 32px ${c.rgba(0.12)}` }}
+        aria-hidden="true"
+      />
+
+      {/* Ghost rank */}
+      <div
+        className="rank-ghost absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none select-none"
+        style={{ fontSize: 'clamp(4.5rem,10vw,8rem)', color: c.rgba(0.05), lineHeight: 1, zIndex: 0 }}
+        aria-hidden="true"
       >
-        {String(anime.rank).padStart(2, '0')}
+        {String(anime.rank).padStart(2,'0')}
       </div>
 
-      {/* ── Thumbnail panel ── */}
+      {/* ── Thumbnail ── */}
       <div
-        className="relative flex-shrink-0 w-24 sm:w-36 md:w-44 flex flex-col items-center justify-center overflow-hidden"
+        className="relative flex-shrink-0 flex flex-col items-center justify-center overflow-hidden"
         style={{
-          background: `linear-gradient(145deg, ${hexToRgba(anime.color, 0.22)}, ${hexToRgba(anime.color, 0.06)})`,
-          minHeight: '120px',
+          width: 'clamp(80px, 16vw, 160px)',
+          background: `linear-gradient(160deg, ${c.rgba(0.2)}, ${c.rgba(0.05)})`,
+          borderRight: `1px solid ${c.rgba(0.15)}`,
         }}
       >
-        {/* Diagonal line texture */}
-        <div className="absolute inset-0 overflow-hidden">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-[200%] -left-1/2"
-              style={{
-                height: '1px',
-                background: `linear-gradient(90deg, transparent, ${anime.color}, transparent)`,
-                opacity: 0.12,
-                top: `${i * 18}px`,
-                transform: 'rotate(-35deg)',
-              }}
-            />
-          ))}
-        </div>
+        {/* Diagonal lines */}
+        {Array.from({length:8}).map((_,i) => (
+          <div key={i} className="absolute w-[250%] -left-[75%] h-px pointer-events-none"
+            style={{ background:`linear-gradient(90deg,transparent,${c.rgba(0.15)},transparent)`, top:`${i*20}px`, transform:'rotate(-40deg)' }}
+            aria-hidden="true"
+          />
+        ))}
 
         {/* Rank badge */}
         <div
-          className="absolute top-2 left-2 z-10 font-display text-xs px-2 py-0.5 rounded-md leading-tight"
-          style={{ background: anime.color, color: '#080B14' }}
+          className="absolute top-2 left-2 font-heading text-[0.6rem] font-bold px-2 py-0.5 rounded-md z-10"
+          style={{ background: c.rgba(0.2), color: anime.color, border: `1px solid ${c.rgba(0.4)}` }}
+          aria-hidden="true"
         >
           #{anime.rank}
         </div>
 
-        {/* Anime initial monogram */}
-        <div className="relative z-10 text-center px-2">
+        {/* Monogram */}
+        <div className="relative z-10 text-center px-3">
           <p
-            className="font-display text-3xl sm:text-4xl leading-none mb-1"
-            style={{ color: anime.color, textShadow: `0 0 20px ${hexToRgba(anime.color, 0.5)}` }}
+            className="font-display font-bold leading-none mb-1"
+            style={{ fontSize:'clamp(1.8rem,5vw,2.8rem)', color: anime.color, filter:`drop-shadow(0 0 12px ${c.rgba(0.5)})` }}
+            aria-hidden="true"
           >
-            {anime.title.split(' ').slice(0, 2).map(w => w[0]).join('')}
-          </p>
-          <p
-            className="font-heading text-[0.6rem] sm:text-xs text-center leading-tight font-semibold tracking-wider opacity-60"
-            style={{ color: anime.color }}
-          >
-            {anime.title.length > 18 ? anime.title.substring(0, 18) + '…' : anime.title}
+            {anime.title.split(' ').slice(0,2).map(w=>w[0]).join('')}
           </p>
         </div>
+
+        {/* Bottom scan line accent */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-0.5"
+          style={{ background: `linear-gradient(90deg, transparent, ${c.rgba(0.5)}, transparent)` }}
+          aria-hidden="true"
+        />
       </div>
 
       {/* ── Content ── */}
-      <div
-        className="relative z-10 flex-1 min-w-0 p-3 sm:p-4 md:p-5 flex flex-col justify-between"
-        style={{
-          background: 'rgba(13,18,32,0.97)',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          borderRight: '1px solid rgba(255,255,255,0.06)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        {/* Left accent bar on hover */}
+      <div className="relative z-10 flex-1 min-w-0 flex flex-col justify-between p-3 sm:p-4">
+        {/* Left accent bar */}
         <div
-          className="absolute left-0 top-0 bottom-0 w-[2px] transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-          style={{ background: `linear-gradient(to bottom, transparent, ${anime.color}cc, transparent)` }}
+          className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ background: `linear-gradient(to bottom, transparent, ${anime.color}, transparent)` }}
+          aria-hidden="true"
         />
 
-        <div>
-          {/* Title + genres row */}
-          <div className="flex flex-wrap items-start gap-x-3 gap-y-1 mb-1.5">
-            <h3 className="font-heading text-base sm:text-lg font-bold text-[#F0F4FF] leading-tight group-hover:text-white transition-colors">
-              {anime.title}
-            </h3>
-          </div>
+        <div className="pl-2">
+          {/* Title */}
+          <h3 className="font-heading font-bold text-[#EEF2FF] leading-tight mb-1.5 group-hover:text-white transition-colors"
+            style={{ fontSize: 'clamp(0.85rem, 2vw, 1.05rem)' }}>
+            {anime.title}
+          </h3>
 
-          {/* Genre tags */}
-          <div className="flex flex-wrap gap-1 mb-2.5">
-            {anime.genres.slice(0, 4).map(genre => (
-              <span
-                key={genre}
-                className={`genre-tag ${GENRE_STYLES[genre] || 'bg-white/5 text-white/50 border-white/15'}`}
-              >
-                {genre}
-              </span>
+          {/* Genres */}
+          <div className="flex flex-wrap gap-1 mb-2">
+            {anime.genres.slice(0,3).map(g => (
+              <span key={g} className={`genre-tag ${GENRE_STYLES[g] || 'text-white/40 border-white/10 bg-white/[0.03]'}`}>{g}</span>
             ))}
           </div>
 
           {/* Description */}
-          <p className="text-[#8A94AA] text-xs sm:text-sm leading-relaxed line-clamp-2">
+          <p className="text-[#5A6A8A] text-xs leading-relaxed line-clamp-2 group-hover:text-[#8A9AB8] transition-colors">
             {anime.description}
           </p>
         </div>
 
-        {/* Bottom row */}
-        <div className="flex items-center justify-between mt-3 gap-2">
+        {/* Footer */}
+        <div className="pl-2 flex items-center justify-between mt-2.5 gap-2">
           <div className="flex items-center gap-2">
-            <StarRating rating={anime.rating} />
-            <span className="text-[#8A94AA] font-heading text-xs font-semibold">{anime.rating}</span>
-            <span className="hidden sm:inline text-[#8A94AA]/50 text-xs">·</span>
-            <span className="hidden sm:inline text-[#8A94AA] text-xs">{anime.quotes.length} quotes</span>
+            <Stars rating={anime.rating} />
+            <span className="font-heading text-xs font-semibold" style={{ color: '#FFD600' }}>{anime.rating}</span>
+            <span className="hidden sm:inline text-[#5A6A8A] text-xs">· {anime.quotes.length} quotes</span>
           </div>
 
+          {/* CTA button — min 44px tall */}
           <button
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-heading font-semibold uppercase tracking-wider transition-all duration-200 hover:scale-105"
-            style={{
-              background: hexToRgba(anime.color, 0.12),
-              color: anime.color,
-              border: `1px solid ${hexToRgba(anime.color, 0.3)}`,
-            }}
             onClick={e => { e.stopPropagation(); onClick(); }}
+            aria-label={`View quotes for ${anime.title}`}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-heading font-semibold uppercase tracking-wider transition-all duration-200 hover:scale-105 active:scale-95"
+            style={{
+              background: c.rgba(0.1),
+              color: anime.color,
+              border: `1px solid ${c.rgba(0.28)}`,
+              minHeight: '36px',
+            }}
           >
-            <span className="hidden sm:inline">View Quotes</span>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="hidden sm:inline">Quotes</span>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </button>
