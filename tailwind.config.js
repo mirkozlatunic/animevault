@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['"Syne"', 'sans-serif'],
+        display: ['"Saira Stencil One"', 'sans-serif'],
         heading: ['"Outfit"', 'sans-serif'],
         body: ['"DM Sans"', 'sans-serif'],
       },

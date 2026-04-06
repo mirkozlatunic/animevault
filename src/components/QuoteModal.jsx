@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useAnimeImage } from '../hooks/useAnimeImage';
 
 function rgb(hex) {
   const r = parseInt(hex.slice(1,3),16);
@@ -10,6 +11,7 @@ function rgb(hex) {
 export default function QuoteModal({ anime, onClose }) {
   const [toast, setToast] = useState(null);
   const c = rgb(anime.color);
+  const { imageUrl } = useAnimeImage(anime.title, true);
 
   useEffect(() => {
     const onKey = e => { if (e.key === 'Escape') onClose(); };
@@ -93,7 +95,26 @@ export default function QuoteModal({ anime, onClose }) {
           <div className="absolute inset-0 scanline opacity-30 pointer-events-none rounded-t-2xl" aria-hidden="true" />
 
           <div className="relative flex items-start justify-between gap-4">
-            <div>
+            {/* Poster image */}
+            {imageUrl && (
+              <div
+                className="flex-shrink-0 rounded-xl overflow-hidden hidden sm:block"
+                style={{
+                  width: '72px',
+                  height: '100px',
+                  border: `1px solid ${c(0.3)}`,
+                  boxShadow: `0 0 20px ${c(0.2)}`,
+                }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`${anime.title} poster`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
+            <div className="flex-1 min-w-0">
               <p
                 className="font-heading text-[0.65rem] font-bold uppercase tracking-[0.3em] mb-1.5"
                 style={{ color: c(0.7) }}

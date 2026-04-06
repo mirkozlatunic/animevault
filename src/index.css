@@ -30,7 +30,7 @@ html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'DM Sans', 'Outfit', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
@@ -169,7 +169,7 @@ body {
 
 /* ─── Rank number styling ─── */
 .rank-ghost {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Saira Stencil One', sans-serif;
   font-weight: 800;
   line-height: 1;
   pointer-events: none;
@@ -237,6 +237,12 @@ input:focus-visible,
 /* ─── Star rating ─── */
 .star-filled { color: var(--gold); }
 .star-empty  { color: rgba(255,214,0,0.18); }
+
+/* ─── Image shimmer ─── */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 /* ─── Cursor pointer on all interactive elements ─── */
 button, [role="button"], [tabindex="0"] { cursor: pointer; }
