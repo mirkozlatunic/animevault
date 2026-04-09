@@ -36,6 +36,16 @@ No accounts. No backend. No clutter. Just anime and words worth remembering.
 - **Copy Quote** — copies the formatted quote to your clipboard: `"Quote" — Character, Anime Title`
 - **Share** — shares to Twitter/X with the quote pre-filled, or triggers the native Web Share API on mobile
 
+### User Voting
+- Upvote/downvote any anime card — votes persist in localStorage
+- Toggle "Community Ranking" to reorder the list by user votes vs the curated ranking
+- Vote counts displayed on each card
+
+### Random Quote Generator
+- "Random Quote" button in the header opens a full-screen modal
+- Displays a random quote with character name and anime title
+- Copy, Share, and "New Quote" buttons to cycle through quotes without closing
+
 ### Quote Wall
 - A separate section that collects all 90 quotes from all 30 anime in one masonry grid
 - Filter by a specific anime or browse everything at once
@@ -76,6 +86,7 @@ animevault/
         ├── SearchFilter.jsx  # Search input + genre filter chips
         ├── AnimeCard.jsx     # Individual ranked anime card
         ├── QuoteModal.jsx    # Quote modal with copy/share actions
+        ├── RandomQuoteModal.jsx  # Full-screen random quote generator
         └── QuoteWall.jsx     # Masonry quote grid section
 ```
 
@@ -166,13 +177,14 @@ Every `git push` to `main` will trigger a new deploy automatically.
 - Component-driven UI architecture with reusable cards, modals, and filter controls
 - Clipboard API and Web Share API integration for cross-platform copy/share functionality
 - Responsive masonry grid layouts with CSS and Tailwind for varying content heights
-- Designing a data-driven app around a single static dataset with no backend dependencies
+- Client-side persistence with localStorage for user voting state
+- CSS animation choreography — staggered card entrances, modal scale-ins, and filter transitions
 
 ## Roadmap
 
 - [ ] Add character profile pages with voice actor info and episode appearances
-- [ ] User-submitted quotes with an upvote system (would require a backend)
 - [ ] Anime recommendation engine based on genre preferences
+- [ ] Persistent community leaderboard with a backend (currently votes are local-only)
 
 ---
 
