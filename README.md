@@ -4,6 +4,10 @@
 
 > Live site → **[animevault-chi.vercel.app](https://animevault-chi.vercel.app)**
 
+## Screenshots
+
+<!-- Add screenshots here -->
+
 ---
 
 ## What is AnimeVault?
@@ -154,6 +158,21 @@ Every `git push` to `main` will trigger a new deploy automatically.
 | 28 | Overlord | ★ 4.5 |
 | 29 | That Time I Got Reincarnated as a Slime | ★ 4.4 |
 | 30 | Trigun | ★ 4.7 |
+
+---
+
+## What I Learned
+
+- Component-driven UI architecture with reusable cards, modals, and filter controls
+- Clipboard API and Web Share API integration for cross-platform copy/share functionality
+- Responsive masonry grid layouts with CSS and Tailwind for varying content heights
+- Designing a data-driven app around a single static dataset with no backend dependencies
+
+## Roadmap
+
+- [ ] Add character profile pages with voice actor info and episode appearances
+- [ ] User-submitted quotes with an upvote system (would require a backend)
+- [ ] Anime recommendation engine based on genre preferences
 
 ---
 
