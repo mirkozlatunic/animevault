@@ -33,7 +33,7 @@ function Stars({ rating }) {
   );
 }
 
-export default function AnimeCard({ anime, index, onClick }) {
+export default function AnimeCard({ anime, index, onClick, voteCount = 0, onVote }) {
   const cardRef   = useRef(null);
   const [visible, setVisible] = useState(false);   // for scroll-reveal
   const [inView,  setInView]  = useState(false);   // triggers image fetch
@@ -214,6 +214,32 @@ export default function AnimeCard({ anime, index, onClick }) {
             <Stars rating={anime.rating} />
             <span className="font-heading text-xs font-semibold" style={{ color: '#FFD600' }}>{anime.rating}</span>
             <span className="hidden sm:inline text-[#5A6A8A] text-xs">· {anime.quotes.length} quotes</span>
+
+            {/* Vote buttons */}
+            <div className="flex items-center gap-0.5 ml-1" onClick={e => e.stopPropagation()}>
+              <button
+                onClick={() => onVote(1)}
+                aria-label="Upvote"
+                className="w-7 h-7 rounded-md flex items-center justify-center text-xs transition-all hover:scale-110 active:scale-90"
+                style={{ background: 'rgba(0,240,255,0.08)', color: '#00F0FF', border: '1px solid rgba(0,240,255,0.15)' }}
+              >
+                ▲
+              </button>
+              <span
+                className="font-heading text-xs font-bold min-w-[24px] text-center"
+                style={{ color: voteCount > 0 ? '#00F0FF' : voteCount < 0 ? '#F87171' : '#5A6A8A' }}
+              >
+                {voteCount}
+              </span>
+              <button
+                onClick={() => onVote(-1)}
+                aria-label="Downvote"
+                className="w-7 h-7 rounded-md flex items-center justify-center text-xs transition-all hover:scale-110 active:scale-90"
+                style={{ background: 'rgba(248,113,113,0.08)', color: '#F87171', border: '1px solid rgba(248,113,113,0.15)' }}
+              >
+                ▼
+              </button>
+            </div>
           </div>
 
           <button

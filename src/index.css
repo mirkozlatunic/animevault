@@ -244,5 +244,20 @@ input:focus-visible,
   100% { background-position: -200% 0; }
 }
 
+/* ─── Card list transitions ─── */
+.card-list-item {
+  animation: cardEnter 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* ─── Cursor pointer on all interactive elements ─── */
 button, [role="button"], [tabindex="0"] { cursor: pointer; }

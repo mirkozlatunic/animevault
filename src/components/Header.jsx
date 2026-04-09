@@ -1,4 +1,4 @@
-export default function Header({ view, setView }) {
+export default function Header({ view, setView, onRandomQuote }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Glass backdrop */}
@@ -54,6 +54,21 @@ export default function Header({ view, setView }) {
 
         {/* Nav */}
         <nav className="flex items-center gap-1 p-1 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }} role="navigation" aria-label="Main navigation">
+          <button
+            onClick={onRandomQuote}
+            aria-label="Random quote"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-heading font-semibold transition-all duration-200 min-h-[40px] hover:scale-105 active:scale-95"
+            style={{
+              background: 'rgba(255,214,0,0.1)',
+              color: '#FFD600',
+              border: '1px solid rgba(255,214,0,0.25)',
+            }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="hidden sm:inline">Random Quote</span>
+          </button>
           <NavBtn active={view === 'rankings'} onClick={() => setView('rankings')} label="Rankings">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />

@@ -1,25 +1,49 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Header from './components/Header';
 import SearchFilter from './components/SearchFilter';
 import AnimeCard from './components/AnimeCard';
 import QuoteModal from './components/QuoteModal';
+import RandomQuoteModal from './components/RandomQuoteModal';
 import QuoteWall from './components/QuoteWall';
 import { animeData, ALL_GENRES } from './data/anime';
 
 const TOTAL_QUOTES = animeData.reduce((s, a) => s + a.quotes.length, 0);
+
+const ALL_QUOTES = animeData.flatMap(anime =>
+  anime.quotes.map(q => ({ ...q, animeTitle: anime.title, animeColor: anime.color }))
+);
+
+function loadVotes() {
+  try { return JSON.parse(localStorage.getItem('animevault-votes')) || {}; }
+  catch { return {}; }
+}
 
 export default function App() {
   const [view, setView]             = useState('rankings');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [selectedAnime, setSelectedAnime] = useState(null);
+  const [showRandomQuote, setShowRandomQuote] = useState(false);
+  const [votes, setVotes] = useState(loadVotes);
+  const [sortByVotes, setSortByVotes] = useState(false);
 
-  const filtered = useMemo(() =>
-    animeData
+  const vote = useCallback((rank, delta) => {
+    setVotes(prev => {
+      const next = { ...prev, [rank]: (prev[rank] || 0) + delta };
+      localStorage.setItem('animevault-votes', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const filtered = useMemo(() => {
+    let list = animeData
       .filter(a => selectedGenre === 'All' || a.genres.includes(selectedGenre))
-      .filter(a => a.title.toLowerCase().includes(searchQuery.toLowerCase())),
-    [searchQuery, selectedGenre]
-  );
+      .filter(a => a.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (sortByVotes) {
+      list = [...list].sort((a, b) => (votes[b.rank] || 0) - (votes[a.rank] || 0));
+    }
+    return list;
+  }, [searchQuery, selectedGenre, sortByVotes, votes]);
 
   const switchView = (v) => {
     setView(v);
@@ -51,7 +75,7 @@ export default function App() {
         aria-hidden="true"
       />
 
-      <Header view={view} setView={switchView} />
+      <Header view={view} setView={switchView} onRandomQuote={() => setShowRandomQuote(true)} />
 
       <main className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-24">
 
@@ -126,21 +150,34 @@ export default function App() {
             />
 
             {/* Results bar */}
-            <div className="flex items-center justify-between mb-4 mt-5">
+            <div className="flex items-center justify-between mb-4 mt-5 gap-3 flex-wrap">
               <p className="font-heading text-xs" style={{ color: '#5A6A8A' }}>
                 {filtered.length === animeData.length
                   ? `Showing all ${animeData.length} series`
                   : `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`}
+                {sortByVotes && ' · sorted by votes'}
               </p>
-              {(searchQuery || selectedGenre !== 'All') && (
+              <div className="flex items-center gap-4">
                 <button
-                  onClick={() => { setSearchQuery(''); setSelectedGenre('All'); }}
-                  className="font-heading text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#00F0FF]"
-                  style={{ color: '#5A6A8A' }}
+                  onClick={() => setSortByVotes(v => !v)}
+                  className="font-heading text-xs font-semibold uppercase tracking-wider transition-colors"
+                  style={{
+                    color: sortByVotes ? '#00F0FF' : '#5A6A8A',
+                    textShadow: sortByVotes ? '0 0 12px rgba(0,240,255,0.4)' : 'none',
+                  }}
                 >
-                  Clear filters
+                  {sortByVotes ? '★ Community' : '☆ Community'}
                 </button>
-              )}
+                {(searchQuery || selectedGenre !== 'All') && (
+                  <button
+                    onClick={() => { setSearchQuery(''); setSelectedGenre('All'); }}
+                    className="font-heading text-xs font-semibold uppercase tracking-wider transition-colors hover:text-[#00F0FF]"
+                    style={{ color: '#5A6A8A' }}
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* List */}
@@ -163,14 +200,21 @@ export default function App() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-2.5" key={`${selectedGenre}-${searchQuery}-${sortByVotes}`}>
                 {filtered.map((anime, i) => (
-                  <AnimeCard
+                  <div
                     key={anime.rank}
-                    anime={anime}
-                    index={i}
-                    onClick={() => setSelectedAnime(anime)}
-                  />
+                    className="card-list-item"
+                    style={{ animationDelay: `${Math.min(i * 50, 400)}ms` }}
+                  >
+                    <AnimeCard
+                      anime={anime}
+                      index={i}
+                      onClick={() => setSelectedAnime(anime)}
+                      voteCount={votes[anime.rank] || 0}
+                      onVote={(delta) => vote(anime.rank, delta)}
+                    />
+                  </div>
                 ))}
               </div>
             )}
@@ -201,6 +245,11 @@ export default function App() {
       {/* ── Modal ── */}
       {selectedAnime && (
         <QuoteModal anime={selectedAnime} onClose={() => setSelectedAnime(null)} />
+      )}
+
+      {/* ── Random Quote Modal ── */}
+      {showRandomQuote && (
+        <RandomQuoteModal quotes={ALL_QUOTES} onClose={() => setShowRandomQuote(false)} />
       )}
     </div>
   );
